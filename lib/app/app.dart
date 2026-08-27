@@ -31,7 +31,7 @@ class NatyApp extends StatelessWidget {
           useMaterial3: true,
         ),
         themeMode: ThemeMode.system,
-        initialRoute: AppRoute.home.path,
+        initialRoute: AppRoute.login.path,
         onGenerateRoute: router.generateRoute,
         onUnknownRoute: router.generateUnknownRoute,
       ),
