@@ -59,11 +59,13 @@ class LearningPath extends StatelessWidget {
   const LearningPath({
     required this.steps,
     super.key,
-    this.stepExtent = 82,
-    this.nodeSize = 46,
+    this.stepExtent = 96,
+    this.nodeSize = 58,
     this.horizontalPadding = 28,
     this.labelGap = 14,
     this.connectorWidth = 3,
+    this.controller,
+    this.physics,
   });
 
   final List<LearningPathStep> steps;
@@ -72,6 +74,8 @@ class LearningPath extends StatelessWidget {
   final double horizontalPadding;
   final double labelGap;
   final double connectorWidth;
+  final ScrollController? controller;
+  final ScrollPhysics? physics;
 
   @override
   Widget build(BuildContext context) {
@@ -82,49 +86,53 @@ class LearningPath extends StatelessWidget {
     return Semantics(
       container: true,
       label: 'Trilha de progresso',
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final width = constraints.maxWidth.isFinite
-              ? constraints.maxWidth
-              : 360.0;
-          final pathWidth = math
-              .max(0.0, width - horizontalPadding * 2)
-              .toDouble();
+      child: SingleChildScrollView(
+        controller: controller,
+        physics: physics,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final width = constraints.maxWidth.isFinite
+                ? constraints.maxWidth
+                : 360.0;
+            final pathWidth = math
+                .max(0.0, width - horizontalPadding * 2)
+                .toDouble();
 
-          return SizedBox(
-            height: height,
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Positioned.fill(
-                  child: IgnorePointer(
-                    child: CustomPaint(
-                      painter: _LearningPathConnectorPainter(
-                        steps: steps,
-                        nodeSize: nodeSize,
-                        stepExtent: stepExtent,
-                        horizontalPadding: horizontalPadding,
-                        connectorWidth: connectorWidth,
-                        pathWidth: pathWidth,
+            return SizedBox(
+              height: height,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: CustomPaint(
+                        painter: _LearningPathConnectorPainter(
+                          steps: steps,
+                          nodeSize: nodeSize,
+                          stepExtent: stepExtent,
+                          horizontalPadding: horizontalPadding,
+                          connectorWidth: connectorWidth,
+                          pathWidth: pathWidth,
+                        ),
                       ),
                     ),
                   ),
-                ),
-                for (var index = 0; index < steps.length; index++)
-                  _StepPositioned(
-                    step: steps[index],
-                    index: index,
-                    width: width,
-                    pathWidth: pathWidth,
-                    stepExtent: stepExtent,
-                    nodeSize: nodeSize,
-                    horizontalPadding: horizontalPadding,
-                    labelGap: labelGap,
-                  ),
-              ],
-            ),
-          );
-        },
+                  for (var index = 0; index < steps.length; index++)
+                    _StepPositioned(
+                      step: steps[index],
+                      index: index,
+                      width: width,
+                      pathWidth: pathWidth,
+                      stepExtent: stepExtent,
+                      nodeSize: nodeSize,
+                      horizontalPadding: horizontalPadding,
+                      labelGap: labelGap,
+                    ),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -169,7 +177,7 @@ class _StepPositioned extends StatelessWidget {
       overflow: TextOverflow.ellipsis,
       style: TextStyle(
         color: _labelColor(step.state),
-        fontSize: 11,
+        fontSize: 14,
         fontWeight: FontWeight.w600,
       ),
     );
@@ -241,13 +249,13 @@ class _LearningPathNode extends StatelessWidget {
               step.nodeText!,
               style: TextStyle(
                 color: foreground,
-                fontSize: 16,
+                fontSize: 20,
                 fontWeight: FontWeight.w700,
               ),
             )
           : Icon(
               step.icon ?? (isCompleted ? Icons.check : Icons.lock),
-              size: isActive && step.icon == null ? 20 : 16,
+              size: isActive && step.icon == null ? 24 : 20,
               color: foreground,
             ),
     );

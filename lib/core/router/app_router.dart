@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:natyapp/core/router/ProgressBar.dart';
+import 'package:natyapp/features/aula/presentation/pages/aula.dart';
 import 'package:natyapp/features/home/presentation/pages/home.dart';
 import 'package:natyapp/features/login/presentation/pages/login.dart';
 import 'package:natyapp/features/theo/presentation/pages/theo.dart';
@@ -26,6 +27,8 @@ class AppRouter {
         return _pageRoute(const _NotFoundPage(), settings, route);
       case AppRoute.theo:
         return _pageRoute(const TheoPage(), settings, route);
+      case AppRoute.aula:
+        return _pageRoute(const AulaPage(), settings, route);
       case AppRoute.login:
         return _pageRoute(const LoginPage(), settings, route);
     }
@@ -134,7 +137,7 @@ class _HomeBasePage extends StatelessWidget {
                 Column(
                   children: [
                     SizedBox(height: mediaPadding.top ),
-                    const Progressbar(),
+                    if (rotaAtual == AppRoute.home) const Progressbar(),
                     Expanded(child: child),
                   ],
                 ),
