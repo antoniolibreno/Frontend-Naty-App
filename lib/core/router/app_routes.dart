@@ -4,7 +4,9 @@ enum AppRoute {
   theo('/theo'),
   login('/login'),
   aula('/aula'),
-  cadastro('/cadastro');
+  cadastro('/cadastro'),
+  progresso('/progresso'),
+  conclusao('/conclusao');
   const AppRoute(this.path);
 
   final String path;

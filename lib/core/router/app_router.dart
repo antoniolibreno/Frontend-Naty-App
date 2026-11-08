@@ -1,11 +1,19 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:natyapp/core/di/injection.dart';
 import 'package:natyapp/core/router/ProgressBar.dart';
 import 'package:natyapp/features/aula/presentation/pages/aula.dart';
 import 'package:natyapp/features/cadastro/cadastro_flow.dart';
 import 'package:natyapp/features/home/presentation/pages/home.dart';
 import 'package:natyapp/features/login/presentation/pages/login.dart';
+import 'package:natyapp/features/progresso/presentation/bloc/conclusao_bloc.dart';
+import 'package:natyapp/features/progresso/presentation/bloc/conclusao_event.dart';
+import 'package:natyapp/features/progresso/presentation/bloc/progresso_bloc.dart';
+import 'package:natyapp/features/progresso/presentation/bloc/progresso_event.dart';
+import 'package:natyapp/features/progresso/presentation/pages/conclusao.dart';
+import 'package:natyapp/features/progresso/presentation/pages/progresso.dart';
 import 'package:natyapp/features/theo/presentation/pages/theo.dart';
 import 'package:natyapp/theme/theme.dart';
 
@@ -39,6 +47,26 @@ class AppRouter {
               onJaTenhoConta: () => Navigator.of(context)
                   .pushReplacementNamed(AppRoute.login.path),
             ),
+          ),
+          settings,
+          route,
+        );
+      case AppRoute.progresso:
+        return _pageRoute(
+          BlocProvider(
+            create: (_) =>
+                getIt<ProgressoBloc>()..add(const ProgressoSolicitado()),
+            child: const ProgressoPage(),
+          ),
+          settings,
+          route,
+        );
+      case AppRoute.conclusao:
+        return _pageRoute(
+          BlocProvider(
+            create: (_) =>
+                getIt<ConclusaoBloc>()..add(const ConclusaoSolicitada()),
+            child: const ConclusaoPage(),
           ),
           settings,
           route,

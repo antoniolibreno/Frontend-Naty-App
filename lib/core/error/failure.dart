@@ -15,3 +15,16 @@ final class NetworkFailure extends Failure {
   ]);
 }
 
+/// Resposta de erro da API, no formato `ErroResposta` do back: [status] HTTP,
+/// [codigo] de negócio (quando houver) e a `mensagem` do back em [message].
+final class ApiFailure extends Failure {
+  const ApiFailure({
+    required this.status,
+    this.codigo,
+    String message = 'O servidor recusou a requisição.',
+  }) : super(message);
+
+  final int status;
+  final String? codigo;
+}
+
