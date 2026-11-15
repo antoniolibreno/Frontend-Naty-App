@@ -1,40 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:natyapp/theme/app_colors.dart';
 
+import 'app_routes.dart';
+
 class Progressbar extends StatelessWidget {
   const Progressbar({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-
     return Semantics(
-      child: ClipRRect(
-        child: SizedBox(
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-            decoration: BoxDecoration(color: AppColors.darkBackground),
-            child: Column(
-              spacing: 10,
-              children: [
-                Row(
-                  children: [
-                    buildProgressCircle(atual: 20, total: 100),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: buildProgressBar(
-                        atual: 20,
-                        texto: 'Modulo de IA',
-                        total: 100,
+      button: true,
+      label: 'Ver progresso',
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => Navigator.of(context).pushNamed(AppRoute.progresso.path),
+        child: ClipRRect(
+          child: SizedBox(
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+              decoration: BoxDecoration(color: AppColors.darkBackground),
+              child: Column(
+                spacing: 10,
+                children: [
+                  Row(
+                    children: [
+                      buildProgressCircle(atual: 20, total: 100),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: buildProgressBar(
+                          atual: 20,
+                          texto: 'Modulo de IA',
+                          total: 100,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                Row(
-                  spacing: 20,
-                  children: [
-                    Container(
-                      child: Row(
+                    ],
+                  ),
+                  Row(
+                    spacing: 20,
+                    children: [
+                      Row(
                         spacing: 5,
                         children: [
                           Image.asset("assets/imgs/fogo.png", width: 20),
@@ -47,34 +51,34 @@ class Progressbar extends StatelessWidget {
                           ),
                         ],
                       ),
-                    ),
-                    Text(
-                      "240 XP",
-                      style: TextStyle(
-                        color: AppColors.brandPurple,
-                        fontWeight: FontWeight.bold,
+                      Text(
+                        "240 XP",
+                        style: TextStyle(
+                          color: AppColors.brandPurple,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    Text(
-                      "Meta 1/3",
-                      style: TextStyle(
-                        color: AppColors.brandGreen,
-                        fontWeight: FontWeight.bold,
+                      Text(
+                        "Meta 1/3",
+                        style: TextStyle(
+                          color: AppColors.brandGreen,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Divider(
-                        thickness: 3,
-                        color: AppColors.darkSurface,
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Divider(
+                          thickness: 3,
+                          color: AppColors.darkSurface,
+                        ),
                       ),
-                    ),
-                  ],
-                )
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),

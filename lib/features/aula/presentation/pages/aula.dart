@@ -1,20 +1,28 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:natyapp/core/di/injection.dart';
+import 'package:natyapp/features/training/data/training_repository_api.dart';
+import 'package:natyapp/features/training/domain/training.dart';
 import 'package:natyapp/core/components/textFieldNaty.dart';
+import 'package:natyapp/core/router/app_routes.dart';
+import 'package:natyapp/core/widgets/press_feedback.dart';
+import 'package:natyapp/features/quiz/domain/quiz.dart';
 import 'package:natyapp/theme/app_colors.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 class AulaPage extends StatefulWidget {
   const AulaPage({
     super.key,
-    this.videoId = '5g0fky3c1K0',
+    required this.activityId,
+    this.trackId = '',
     this.title = 'Configuração Canais e Conexões',
     this.description =
         'Como configurar o número, validar o QR e direcionar cada canal para a fila certa.',
   });
 
-  final String videoId;
+  final String activityId;
+  final String trackId;
   final String title;
   final String description;
 
@@ -23,29 +31,83 @@ class AulaPage extends StatefulWidget {
 }
 
 class _AulaPageState extends State<AulaPage> {
-  late final YoutubePlayerController _youtubeController;
+  YoutubePlayerController? _youtubeController;
+  TrainingActivity? _activity;
+  String? _loadError;
+  bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    _youtubeController = YoutubePlayerController.fromVideoId(
-      videoId: widget.videoId,
-      autoPlay: false,
-      params: const YoutubePlayerParams(
-        showControls: true,
-        showFullscreenButton: true,
-      ),
-    );
+    unawaited(_loadActivity());
+  }
+
+  Future<void> _loadActivity() async {
+    setState(() {
+      _loading = true;
+      _loadError = null;
+    });
+    try {
+      final activity = await getIt<TrainingRepository>().fetchActivity(
+        widget.activityId,
+      );
+      if (!mounted) return;
+      final url = activity.videoUrl;
+      final videoId = url == null
+          ? null
+          : YoutubePlayerController.convertUrlToId(url);
+      if (url != null && videoId == null) {
+        throw const FormatException('Link de vídeo inválido.');
+      }
+      final controller = videoId == null
+          ? null
+          : YoutubePlayerController.fromVideoId(
+              videoId: videoId,
+              autoPlay: false,
+              params: const YoutubePlayerParams(
+                showControls: true,
+                showFullscreenButton: true,
+              ),
+            );
+      setState(() {
+        _activity = activity;
+        _youtubeController = controller;
+        _loading = false;
+      });
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _loading = false;
+          _loadError = 'Não foi possível carregar a aula.';
+        });
+      }
+    }
   }
 
   @override
   void dispose() {
-    unawaited(_youtubeController.close());
+    final controller = _youtubeController;
+    if (controller != null) unawaited(controller.close());
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_loading) return const Center(child: CircularProgressIndicator());
+    if (_loadError != null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(_loadError!),
+            TextButton(
+              onPressed: _loadActivity,
+              child: const Text('Tentar novamente'),
+            ),
+          ],
+        ),
+      );
+    }
     return SafeArea(
       child: ColoredBox(
         color: AppColors.darkBackground,
@@ -90,7 +152,7 @@ class _AulaPageState extends State<AulaPage> {
         ),
         const SizedBox(width: 8),
         const Text(
-          'Trilha 1 de 3',
+          'Aula',
           style: TextStyle(
             color: AppColors.darkTextSecondary,
             fontSize: 12,
@@ -102,12 +164,19 @@ class _AulaPageState extends State<AulaPage> {
   }
 
   Widget _buildVideo() {
+    final controller = _youtubeController;
+    if (controller == null) {
+      return const Padding(
+        padding: EdgeInsets.all(16),
+        child: Text('Vídeo ainda não disponível para esta aula.'),
+      );
+    }
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
       child: AspectRatio(
         aspectRatio: 16 / 9,
         child: YoutubePlayer(
-          controller: _youtubeController,
+          controller: controller,
           backgroundColor: AppColors.darkBackground,
         ),
       ),
@@ -120,7 +189,7 @@ class _AulaPageState extends State<AulaPage> {
       spacing: 5,
       children: [
         Text(
-          widget.title,
+          _activity!.title,
           style: const TextStyle(
             color: AppColors.darkTextPrimary,
             fontSize: 18,
@@ -128,7 +197,7 @@ class _AulaPageState extends State<AulaPage> {
           ),
         ),
         Text(
-          widget.description,
+          _activity!.description,
           style: const TextStyle(
             color: AppColors.darkTextSecondary,
             fontSize: 12,
@@ -180,7 +249,15 @@ class _AulaPageState extends State<AulaPage> {
             SizedBox(
               height: 56,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.of(context).pushNamed(
+                    AppRoute.quiz.path,
+                    arguments: QuizContext(
+                      trilhaId: widget.trackId,
+                      atividadeId: widget.activityId,
+                    ),
+                  );
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.darkSurfaceVariant,
                   foregroundColor: AppColors.brandGreen,
@@ -234,26 +311,36 @@ class _AulaPageState extends State<AulaPage> {
   }
 
   Widget _buildQuizButton() {
-    return SizedBox(
-      height: 48,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: AppColors.brandGradient,
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: ElevatedButton(
-          onPressed: () {},
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.transparent,
-            shadowColor: Colors.transparent,
-            foregroundColor: AppColors.darkBackground,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
-            ),
+    return PressFeedback(
+      child: SizedBox(
+        height: 48,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: AppColors.brandGradient,
+            borderRadius: BorderRadius.circular(14),
           ),
-          child: const Text(
-            'Ir para o quiz',
-            style: TextStyle(fontWeight: FontWeight.w700),
+          child: ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pushNamed(
+                AppRoute.quiz.path,
+                arguments: QuizContext(
+                  trilhaId: widget.trackId,
+                  atividadeId: widget.activityId,
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.transparent,
+              shadowColor: Colors.transparent,
+              foregroundColor: AppColors.darkBackground,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+            child: const Text(
+              'Ir para o quiz',
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
           ),
         ),
       ),

@@ -1,20 +1,12 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:natyapp/core/di/injection.dart';
-import 'package:natyapp/core/router/ProgressBar.dart';
 import 'package:natyapp/features/aula/presentation/pages/aula.dart';
-import 'package:natyapp/features/cadastro/cadastro_flow.dart';
 import 'package:natyapp/features/home/presentation/pages/home.dart';
 import 'package:natyapp/features/login/presentation/pages/login.dart';
-import 'package:natyapp/features/progresso/presentation/bloc/conclusao_bloc.dart';
-import 'package:natyapp/features/progresso/presentation/bloc/conclusao_event.dart';
-import 'package:natyapp/features/progresso/presentation/bloc/progresso_bloc.dart';
-import 'package:natyapp/features/progresso/presentation/bloc/progresso_event.dart';
-import 'package:natyapp/features/progresso/presentation/pages/conclusao.dart';
-import 'package:natyapp/features/progresso/presentation/pages/progresso.dart';
-import 'package:natyapp/features/theo/presentation/pages/theo.dart';
+import 'package:natyapp/features/quiz/domain/quiz.dart';
+import 'package:natyapp/features/quiz/presentation/pages/quiz_page.dart';
+import 'package:natyapp/features/profile/presentation/pages/profile.dart';
 import 'package:natyapp/theme/theme.dart';
 
 import 'app_routes.dart';
@@ -34,43 +26,39 @@ class AppRouter {
         return _pageRoute(HomePage(color: color), settings, route);
       case AppRoute.notFound:
         return _pageRoute(const _NotFoundPage(), settings, route);
-      case AppRoute.theo:
-        return _pageRoute(const TheoPage(), settings, route);
+      case AppRoute.profile:
+        return _pageRoute(const ProfilePage(), settings, route);
       case AppRoute.aula:
-        return _pageRoute(const AulaPage(), settings, route);
+        final arguments = settings.arguments;
+        final data = arguments is Map<String, String>
+            ? arguments
+            : const <String, String>{};
+        final activityId = data['activityId'];
+        if (activityId == null || activityId.isEmpty) {
+          return _pageRoute(const _NotFoundPage(), settings, AppRoute.notFound);
+        }
+        return _pageRoute(
+          AulaPage(
+            activityId: activityId,
+            trackId: data['trackId'] ?? '',
+            title: data['title'] ?? 'Aula de treinamento',
+            description:
+                data['description'] ?? 'Conteúdo da atividade selecionada.',
+          ),
+          settings,
+          route,
+        );
+      case AppRoute.quiz:
+        final context = settings.arguments;
+        if (context is! QuizContext) {
+          return _pageRoute(const _NotFoundPage(), settings, AppRoute.notFound);
+        }
+        return _pageRoute(QuizPage(contexto: context), settings, route);
       case AppRoute.login:
         return _pageRoute(const LoginPage(), settings, route);
-      case AppRoute.cadastro:
-        return _pageRoute(
-          Builder(
-            builder: (context) => CadastroFlow(
-              onJaTenhoConta: () => Navigator.of(context)
-                  .pushReplacementNamed(AppRoute.login.path),
-            ),
-          ),
-          settings,
-          route,
-        );
       case AppRoute.progresso:
-        return _pageRoute(
-          BlocProvider(
-            create: (_) =>
-                getIt<ProgressoBloc>()..add(const ProgressoSolicitado()),
-            child: const ProgressoPage(),
-          ),
-          settings,
-          route,
-        );
       case AppRoute.conclusao:
-        return _pageRoute(
-          BlocProvider(
-            create: (_) =>
-                getIt<ConclusaoBloc>()..add(const ConclusaoSolicitada()),
-            child: const ConclusaoPage(),
-          ),
-          settings,
-          route,
-        );
+        return _pageRoute(const _NotFoundPage(), settings, AppRoute.notFound);
     }
   }
 
@@ -94,11 +82,28 @@ class AppRouter {
   ) {
     return PageRouteBuilder<T>(
       settings: settings,
+      transitionDuration: const Duration(milliseconds: 220),
+      reverseTransitionDuration: const Duration(milliseconds: 160),
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        final shell = _HomeBasePage(rotaAtual: route, child: child);
+        if (MediaQuery.disableAnimationsOf(context)) return shell;
+        final curve = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+          reverseCurve: Curves.easeInCubic,
+        );
         return FadeTransition(
-          opacity: animation,
-          child: _HomeBasePage(rotaAtual: route, child: child),
+          opacity: curve,
+          child: route == AppRoute.aula
+              ? SlideTransition(
+                  position: Tween(
+                    begin: const Offset(0, .025),
+                    end: Offset.zero,
+                  ).animate(curve),
+                  child: shell,
+                )
+              : shell,
         );
       },
     );
@@ -112,19 +117,19 @@ class _HomeBasePage extends StatelessWidget {
   final AppRoute rotaAtual;
 
   bool mostrarSideBar() {
-    return {AppRoute.home, AppRoute.theo}.contains(rotaAtual);
+    return {AppRoute.home, AppRoute.profile}.contains(rotaAtual);
   }
 
   int get _selectedIndex => switch (rotaAtual) {
     AppRoute.home => 0,
-    AppRoute.theo => 1,
+    AppRoute.profile => 1,
     _ => 0,
   };
 
   void _onDestinationSelected(BuildContext context, int index) {
     final destination = switch (index) {
       0 => AppRoute.home,
-      1 => AppRoute.theo,
+      1 => AppRoute.profile,
       _ => AppRoute.home,
     };
 
@@ -171,18 +176,17 @@ class _HomeBasePage extends StatelessWidget {
           );
         }
 
-          return Scaffold(
-            body: Stack(
-              children: [
-                Column(
-                  children: [
-                    SizedBox(height: mediaPadding.top ),
-                    if (rotaAtual == AppRoute.home) const Progressbar(),
-                    Expanded(child: child),
-                  ],
-                ),
+        return Scaffold(
+          body: Stack(
+            children: [
+              Column(
+                children: [
+                  SizedBox(height: mediaPadding.top),
+                  Expanded(child: child),
+                ],
+              ),
 
-                Positioned(
+              Positioned(
                 left: 20,
                 right: 20,
                 bottom: mediaPadding.bottom + 16,

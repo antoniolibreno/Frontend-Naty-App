@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'press_feedback.dart';
 
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
@@ -34,41 +35,55 @@ class GradientButton extends StatelessWidget {
       button: true,
       enabled: _tappable,
       label: label,
-      child: AnimatedContainer(
-        duration: _duration,
-        decoration: BoxDecoration(
-          color: _disabled ? AppColors.buttonDisabledBg : null,
-          gradient: _disabled ? null : AppColors.brandGradient,
-          borderRadius: radius,
-        ),
-        // Material transparente para o efeito de toque (ripple) aparecer
-        // por cima do gradiente.
-        child: Material(
-          type: MaterialType.transparency,
-          child: InkWell(
+      child: PressFeedback(
+        enabled: _tappable,
+        child: AnimatedContainer(
+          duration: MediaQuery.disableAnimationsOf(context)
+              ? Duration.zero
+              : _duration,
+          decoration: BoxDecoration(
+            color: _disabled ? AppColors.buttonDisabledBg : null,
+            gradient: _disabled ? null : AppColors.brandGradient,
             borderRadius: radius,
-            onTap: _tappable ? onPressed : null,
-            child: SizedBox(
-              height: AppSizes.buttonHeight,
-              width: double.infinity,
-              child: Center(
-                child: isLoading
-                    ? const SizedBox.square(
-                        dimension: 22,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          color: AppColors.textOnBrand,
-                        ),
-                      )
-                    : AnimatedDefaultTextStyle(
-                        duration: _duration,
-                        style: AppTextStyles.button.copyWith(
-                          color: _disabled
-                              ? AppColors.buttonDisabledText
-                              : AppColors.textOnBrand,
-                        ),
-                        child: Text(label),
-                      ),
+          ),
+          // Material transparente para o efeito de toque (ripple) aparecer
+          // por cima do gradiente.
+          child: Material(
+            type: MaterialType.transparency,
+            child: InkWell(
+              borderRadius: radius,
+              onTap: _tappable ? onPressed : null,
+              child: SizedBox(
+                height: AppSizes.buttonHeight,
+                width: double.infinity,
+                child: Center(
+                  child: AnimatedSwitcher(
+                    duration: MediaQuery.disableAnimationsOf(context)
+                        ? Duration.zero
+                        : const Duration(milliseconds: 150),
+                    child: isLoading
+                        ? const SizedBox.square(
+                            key: ValueKey('button-loading'),
+                            dimension: 22,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              color: AppColors.textOnBrand,
+                            ),
+                          )
+                        : AnimatedDefaultTextStyle(
+                            key: const ValueKey('button-label'),
+                            duration: MediaQuery.disableAnimationsOf(context)
+                                ? Duration.zero
+                                : _duration,
+                            style: AppTextStyles.button.copyWith(
+                              color: _disabled
+                                  ? AppColors.buttonDisabledText
+                                  : AppColors.textOnBrand,
+                            ),
+                            child: Text(label),
+                          ),
+                  ),
+                ),
               ),
             ),
           ),

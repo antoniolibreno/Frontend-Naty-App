@@ -17,14 +17,11 @@ import 'package:natyapp/core/di/injection.dart' as _i76;
 import 'package:natyapp/core/network/api_client.dart' as _i495;
 import 'package:natyapp/features/home/presentation/bloc/home_bloc.dart'
     as _i949;
-import 'package:natyapp/features/progresso/data/progresso_repository_mock.dart'
-    as _i318;
-import 'package:natyapp/features/progresso/domain/progresso_repository.dart'
-    as _i67;
-import 'package:natyapp/features/progresso/presentation/bloc/conclusao_bloc.dart'
-    as _i593;
-import 'package:natyapp/features/progresso/presentation/bloc/progresso_bloc.dart'
-    as _i704;
+import 'package:natyapp/features/quiz/data/quiz_repository_api.dart' as _i800;
+import 'package:natyapp/features/quiz/presentation/bloc/quiz_bloc.dart'
+    as _i801;
+import 'package:natyapp/features/training/data/training_repository_api.dart'
+    as _i802;
 
 extension GetItInjectableX on _i174.GetIt {
   // initializes the registration of main-scope dependencies inside of GetIt
@@ -37,17 +34,17 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i949.HomeBloc>(() => _i949.HomeBloc());
     gh.singleton<_i98.AppConfig>(() => registerModule.appConfig);
     gh.lazySingleton<_i517.AppDatabase>(() => _i517.AppDatabase());
-    gh.lazySingleton<_i67.ProgressoRepository>(
-      () => _i318.ProgressoRepositoryMock(),
-    );
     gh.lazySingleton<_i495.ApiClient>(
       () => _i495.ApiClient(gh<_i98.AppConfig>()),
     );
-    gh.factory<_i593.ConclusaoBloc>(
-      () => _i593.ConclusaoBloc(gh<_i67.ProgressoRepository>()),
+    gh.lazySingleton<_i800.QuizRepository>(
+      () => _i800.QuizRepositoryApi(gh<_i495.ApiClient>()),
     );
-    gh.factory<_i704.ProgressoBloc>(
-      () => _i704.ProgressoBloc(gh<_i67.ProgressoRepository>()),
+    gh.factory<_i801.QuizBloc>(
+      () => _i801.QuizBloc(gh<_i800.QuizRepository>()),
+    );
+    gh.lazySingleton<_i802.TrainingRepository>(
+      () => _i802.TrainingRepositoryApi(gh<_i495.ApiClient>()),
     );
     return this;
   }

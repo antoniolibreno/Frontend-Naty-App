@@ -1,12 +1,13 @@
 enum AppRoute {
   home('/'),
   notFound('/not-found'),
-  theo('/theo'),
+  profile('/profile'),
   login('/login'),
+  quiz('/quiz'),
   aula('/aula'),
-  cadastro('/cadastro'),
   progresso('/progresso'),
   conclusao('/conclusao');
+
   const AppRoute(this.path);
 
   final String path;

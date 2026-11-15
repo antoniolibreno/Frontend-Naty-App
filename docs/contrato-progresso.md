@@ -1,5 +1,34 @@
 # Contrato esperado: telas de Progresso e Conclusão
 
+## Estado atual no aplicativo
+
+A visão de progresso foi reunida no Perfil. O aplicativo calcula totais de aulas,
+trilhas concluídas e avanço geral a partir de `GET /api/v1/trilhas` e do progresso
+autenticado de cada trilha. Nome e e-mail vêm inicialmente do login e são
+atualizados por `GET /api/v1/usuarios/me`, junto de `empresa.id`, `empresa.nome`,
+`cargo` e `papel`. Essa leitura é feita ao abrir o Perfil e ao atualizar a tela.
+
+XP, nível, sequência, estatísticas dos quizzes e conquistas agora vêm de
+`GET /api/v1/integrantes/{integranteId}/gamificacao`. O ID é guardado da resposta
+do login. A barra usa `percentualNivel`; o XP restante é
+`xpParaProximoNivel - xpNoNivel`, pois o primeiro campo representa a faixa inteira.
+Datas de sequência seguem o dia da empresa informado pelo backend, sem recálculo no aparelho.
+
+O ranking completo usa `GET /api/v1/ranking?pagina=0&tamanho=20`, conforme a configuração
+real de Pageable em `application.yml`, e lê `itens`, `pagina`, `totalPaginas`.
+Só conquistas concedidas aparecem: o endpoint não fornece o catálogo bloqueado.
+O Perfil mostra os cinco primeiros em um pódio com pedestais animados, consultando
+`pagina=0&tamanho=5`. A ordem visual é 4º, 2º, 1º, 3º, 5º, usando somente as
+posições reais retornadas. O botão de três pontos no canto superior abre a lista
+completa. Se houver menos de cinco participantes, não são criados integrantes fictícios.
+
+O fogo da sequência é animado apenas quando ela é positiva, o ícone está visível
+e o aplicativo está ativo, respeitando redução de movimento.
+
+Tempo de uso ainda aguarda contrato próprio. As propostas
+abaixo são históricas: seus endpoints de resumo e conclusão não são chamados
+pelo Perfil atual.
+
 Este documento diz o que as telas **Seu progresso** e **Implantação concluída**
 precisam do back. As telas já estão prontas e hoje leem dados fixos
 (`ProgressoRepositoryMock`). Quando o back expuser os endpoints abaixo, o front

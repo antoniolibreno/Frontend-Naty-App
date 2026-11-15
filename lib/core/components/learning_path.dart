@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'completion_water_fill.dart';
+import '../widgets/press_feedback.dart';
 
 import 'package:natyapp/theme/app_colors.dart';
 
@@ -21,9 +23,15 @@ class LearningPathStep {
     this.horizontalPosition = 0.5,
     this.semanticLabel,
     this.onTap,
+    this.id,
+    this.animateCompletion = false,
+    this.onCompletionAnimationEnd,
   }) : assert(horizontalPosition >= 0 && horizontalPosition <= 1);
 
   final String label;
+  final String? id;
+  final bool animateCompletion;
+  final VoidCallback? onCompletionAnimationEnd;
   final LearningPathStepState state;
   final IconData? icon;
   final String? nodeText;
@@ -161,7 +169,8 @@ class _StepPositioned extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final nodeLeft = horizontalPadding +
+    final nodeLeft =
+        horizontalPadding +
         (pathWidth * step.horizontalPosition) -
         (nodeSize / 2);
     final labelLeft = step.labelSide == LearningPathLabelSide.right
@@ -193,7 +202,11 @@ class _StepPositioned extends StatelessWidget {
           Positioned(
             left: nodeLeft,
             top: (stepExtent - nodeSize) / 2,
-            child: _LearningPathNode(step: step, size: nodeSize),
+            child: _LearningPathNode(
+              key: ValueKey(step.id ?? index),
+              step: step,
+              size: nodeSize,
+            ),
           ),
           Positioned(
             left: labelLeft,
@@ -213,7 +226,7 @@ class _StepPositioned extends StatelessWidget {
 }
 
 class _LearningPathNode extends StatelessWidget {
-  const _LearningPathNode({required this.step, required this.size});
+  const _LearningPathNode({required this.step, required this.size, super.key});
 
   final LearningPathStep step;
   final double size;
@@ -229,7 +242,7 @@ class _LearningPathNode extends StatelessWidget {
         ? AppColors.darkBackground
         : AppColors.darkTextDisabled;
 
-    final node = Container(
+    final staticNode = Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
@@ -239,12 +252,12 @@ class _LearningPathNode extends StatelessWidget {
             : isCompleted
             ? AppColors.brandGreen
             : AppColors.darkSurface,
-        border: isLocked
-            ? Border.all(color: AppColors.darkBorder)
-            : null,
+        border: isLocked ? Border.all(color: AppColors.darkBorder) : null,
       ),
       alignment: Alignment.center,
-      child: step.nodeText != null
+      child: isCompleted
+          ? Icon(Icons.check_rounded, color: foreground, size: 28)
+          : step.nodeText != null
           ? Text(
               step.nodeText!,
               style: TextStyle(
@@ -260,18 +273,28 @@ class _LearningPathNode extends StatelessWidget {
             ),
     );
 
+    final node = isCompleted && step.animateCompletion
+        ? CompletionWaterFill(
+            size: size,
+            onComplete: step.onCompletionAnimationEnd,
+          )
+        : staticNode;
+
     return Semantics(
       button: step.onTap != null,
       enabled: !isLocked,
       label: step.semanticLabel ?? '${step.label}, ${_stateLabel(step.state)}',
       child: step.onTap == null
           ? node
-          : Material(
-              type: MaterialType.transparency,
-              child: InkWell(
-                onTap: isLocked ? null : step.onTap,
-                customBorder: const CircleBorder(),
-                child: node,
+          : PressFeedback(
+              enabled: !isLocked,
+              child: Material(
+                type: MaterialType.transparency,
+                child: InkWell(
+                  onTap: isLocked ? null : step.onTap,
+                  customBorder: const CircleBorder(),
+                  child: node,
+                ),
               ),
             ),
     );
@@ -312,9 +335,9 @@ class _LearningPathConnectorPainter extends CustomPainter {
   }
 
   Offset _center(int index) => Offset(
-        horizontalPadding + pathWidth * steps[index].horizontalPosition,
-        stepExtent / 2 + index * stepExtent,
-      );
+    horizontalPadding + pathWidth * steps[index].horizontalPosition,
+    stepExtent / 2 + index * stepExtent,
+  );
 
   void _drawDashedLine(Canvas canvas, Offset start, Offset end, Paint paint) {
     final distance = (end - start).distance;
@@ -341,15 +364,15 @@ class _LearningPathConnectorPainter extends CustomPainter {
 }
 
 Color _labelColor(LearningPathStepState state) => switch (state) {
-      LearningPathStepState.completed => AppColors.darkTextSecondary,
-      LearningPathStepState.active => AppColors.darkTextPrimary,
-      LearningPathStepState.available => AppColors.darkTextSecondary,
-      LearningPathStepState.locked => AppColors.darkTextDisabled,
-    };
+  LearningPathStepState.completed => AppColors.darkTextSecondary,
+  LearningPathStepState.active => AppColors.darkTextPrimary,
+  LearningPathStepState.available => AppColors.darkTextSecondary,
+  LearningPathStepState.locked => AppColors.darkTextDisabled,
+};
 
 String _stateLabel(LearningPathStepState state) => switch (state) {
-      LearningPathStepState.completed => 'concluído',
-      LearningPathStepState.active => 'em andamento',
-      LearningPathStepState.available => 'disponível',
-      LearningPathStepState.locked => 'bloqueado',
-    };
+  LearningPathStepState.completed => 'concluído',
+  LearningPathStepState.active => 'em andamento',
+  LearningPathStepState.available => 'disponível',
+  LearningPathStepState.locked => 'bloqueado',
+};

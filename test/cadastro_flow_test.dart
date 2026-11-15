@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'package:natyapp/features/cadastro/cadastro_flow.dart';
-import 'package:natyapp/features/cadastro/inicio_page.dart';
+import 'package:natyapp/features/cadastro/presentation/cadastro_flow.dart';
+import 'package:natyapp/features/cadastro/presentation/pages/inicio_page.dart';
 
 void main() {
   // Evita baixar fontes da internet durante os testes.

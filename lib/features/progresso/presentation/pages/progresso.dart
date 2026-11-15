@@ -376,13 +376,15 @@ class _LinhaConquista extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 14),
           child: Row(
             children: [
-              Icon(
-                _icone,
-                size: 20,
-                color: obtida
-                    ? AppColors.brandGreen
-                    : AppColors.darkTextDisabled,
-              ),
+              conquista.tipo == TipoConquista.sequenciaDias
+                  ? Image.asset('assets/imgs/fogo.png', width: 20, height: 20)
+                  : Icon(
+                      _icone,
+                      size: 20,
+                      color: obtida
+                          ? AppColors.brandGreen
+                          : AppColors.darkTextDisabled,
+                    ),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
